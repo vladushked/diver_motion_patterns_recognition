@@ -1,5 +1,5 @@
-[submodule "lightweight-human-pose-estimation.pytorch"]
-	path = lightweight-human-pose-estimation.pytorch
+[submodule "poseEstimation"]
+	path = poseEstimation
 	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch.git
 [submodule "annotation_tools"]
 	path = annotation_tools
