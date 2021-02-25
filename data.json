@@ -1,1 +1,10 @@
-{"images": [{"id": 1, "width": 621, "height": 640, "file_name": "/home/vlados/diver_motion_patterns_recognition/test_data/000000000872.jpg"}]}
+{
+    "images": [
+        {
+            "id": 1,
+            "width": 621,
+            "height": 640,
+            "file_name": "test_data/000000000872.jpg"
+        }
+    ]
+}
