@@ -1,34 +1,44 @@
 {
     "images": [
         {
+            "license": 1,
             "id": 0,
             "width": 640,
             "height": 480,
-            "file_name": "test_data/biograd-B_00103_left.jpg"
+            "file_name": "biograd-B_00103_left.jpg",
+            "coco_url": "http://0.0.0.0:8007/biograd-B_00103_left.jpg"
         },
         {
+            "license": 1,
             "id": 1,
             "width": 621,
             "height": 640,
-            "file_name": "test_data/000000000872.jpg"
+            "file_name": "000000000872.jpg",
+            "coco_url": "http://0.0.0.0:8007/000000000872.jpg"
         },
         {
+            "license": 1,
             "id": 2,
             "width": 640,
             "height": 480,
-            "file_name": "test_data/biograd-B_00076_left.jpg"
+            "file_name": "biograd-B_00076_left.jpg",
+            "coco_url": "http://0.0.0.0:8007/biograd-B_00076_left.jpg"
         },
         {
+            "license": 1,
             "id": 3,
             "width": 640,
             "height": 480,
-            "file_name": "test_data/biograd-B_00059_left.jpg"
+            "file_name": "biograd-B_00059_left.jpg",
+            "coco_url": "http://0.0.0.0:8007/biograd-B_00059_left.jpg"
         },
         {
+            "license": 1,
             "id": 4,
             "width": 640,
             "height": 480,
-            "file_name": "test_data/biograd-B_00051_left.jpg"
+            "file_name": "biograd-B_00051_left.jpg",
+            "coco_url": "http://0.0.0.0:8007/biograd-B_00051_left.jpg"
         }
     ],
     "annotations": [
@@ -471,6 +481,21 @@
                     7
                 ]
             ]
+        }
+    ],
+    "info": {
+        "description": "Diver Motion Patterns Project Dataset",
+        "url": "https://github.com/vladushked/diver_motion_patterns_recognition",
+        "version": "1.0",
+        "year": 2021,
+        "contributor": "vladik1209@gmail.com",
+        "date_created": "2021/02/26"
+    },
+    "licenses": [
+        {
+            "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/",
+            "id": 1,
+            "name": "Attribution-NonCommercial-ShareAlike License"
         }
     ]
 }
