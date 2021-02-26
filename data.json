@@ -1,4 +1,19 @@
 {
+    "info": {
+        "description": "Diver Motion Patterns Project Dataset",
+        "url": "https://github.com/vladushked/diver_motion_patterns_recognition",
+        "version": "1.0",
+        "year": 2021,
+        "contributor": "vladik1209@gmail.com",
+        "date_created": "2021/02/26"
+    },
+    "licenses": [
+        {
+            "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/",
+            "id": 1,
+            "name": "Attribution-NonCommercial-ShareAlike License"
+        }
+    ],
     "images": [
         {
             "license": 1,
@@ -529,21 +544,6 @@
                     7
                 ]
             ]
-        }
-    ],
-    "info": {
-        "description": "Diver Motion Patterns Project Dataset",
-        "url": "https://github.com/vladushked/diver_motion_patterns_recognition",
-        "version": "1.0",
-        "year": 2021,
-        "contributor": "vladik1209@gmail.com",
-        "date_created": "2021/02/26"
-    },
-    "licenses": [
-        {
-            "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/",
-            "id": 1,
-            "name": "Attribution-NonCommercial-ShareAlike License"
         }
     ]
 }
