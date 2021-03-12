@@ -50,7 +50,7 @@ def classificateAction(model, sequence, device):
 
     with torch.no_grad():
         y_pred = model.forward(sequence)
-    return torch.argmax(y_pred, dim=1)
+    return torch.argmax(y_pred, dim=1), y_pred
 
 
 def infer(net, image_provider, height_size, cpu, device, model):
@@ -112,9 +112,13 @@ def infer(net, image_provider, height_size, cpu, device, model):
             # print(pose_sequence)
             sequence = torch.FloatTensor(pose_sequence).unsqueeze(0)
             # print(sequence.shape)
-            prediction = classificateAction(model, sequence, device)
-            prediction_made = True
-            pose_sequence = pose_sequence[-16:]
+            prediction, values = classificateAction(model, sequence, device)
+            print(values)
+            if (values[0][prediction].item() > 1.0):
+                prediction_made = True
+            else:
+                prediction_made = False
+            pose_sequence = pose_sequence[-4:]
         
         if (prediction_made):
             cv2.putText(img, LABELS[int(prediction)], (10, 30),
