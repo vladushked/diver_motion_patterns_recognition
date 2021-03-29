@@ -1,3 +1,4 @@
+
 import numpy as np
 import cv2
 import os
@@ -5,24 +6,33 @@ import torch
 import torch.nn as nn
 
 os.sys.path.append('poseEstimation')
-from poseEstimation.demo import infer_fast, VideoReader
-from poseEstimation.modules.pose import Pose
-from poseEstimation.modules.load_state import load_state
-from poseEstimation.modules.keypoints import extract_keypoints, group_keypoints
 from poseEstimation.models.with_mobilenet import PoseEstimationWithMobileNet
+from poseEstimation.modules.keypoints import extract_keypoints, group_keypoints
+from poseEstimation.modules.load_state import load_state
+from poseEstimation.modules.pose import Pose
+from poseEstimation.demo import infer_fast, VideoReader
 
 
-LABELS = [
-    "JUMPING",
-    "JUMPING_JACKS",
-    "BOXING",
-    "WAVING_2HANDS",
-    "WAVING_1HAND",
-    "CLAPPING_HANDS"]
+LABELS = ["Around",
+          "ComeHere",
+          "Danger You",
+          "DontKnow",
+          "OKsurface",
+          "Over Under",
+          "Think PressureBalancePb ReserveOpened",
+          "Watch",
+          "CannotOpenReserve",
+          "Cold",
+          "Help",
+          "Me",
+          "Meet",
+          "OutOfAir",
+          "Stop"]
 
-N_CLASSES = 6
+N_CLASSES = 15
 INPUT_DIM = 36
-SEQUENCE_LENGTH = 32
+SEQUENCE_LENGTH = 16
+
 
 class LstmClassifier(nn.Module):
     def __init__(self, input_dim, n_classes, lstm_hidden_dim=256, fc_hidden_dim=256, n_lstm_layers=2):
@@ -89,7 +99,7 @@ def infer(net, image_provider, height_size, cpu, device, model):
                 continue
             pose_keypoints = np.ones((num_keypoints, 2), dtype=np.int32) * -1
             for kpt_id in range(num_keypoints):
-                
+
                 if pose_entries[n][kpt_id] != -1.0:  # keypoint was found
                     pose_keypoints[kpt_id, 0] = int(
                         all_keypoints[int(pose_entries[n][kpt_id]), 0])
@@ -99,14 +109,14 @@ def infer(net, image_provider, height_size, cpu, device, model):
                     pose_keypoints[kpt_id, 0] = 0
                     pose_keypoints[kpt_id, 1] = 0
             pose = Pose(pose_keypoints, pose_entries[n][18])
-            
+
             current_poses.append(pose)
 
         if (len(current_poses) > 0):
             # print(current_poses[0].keypoints.reshape([1,36]))
             pose_sequence.append(current_poses[0].keypoints.reshape([36]))
             # print(len(pose_sequence))
-            #print(type(current_poses[0].keypoints))
+            # print(type(current_poses[0].keypoints))
 
         if (len(pose_sequence) == 32):
             # print(pose_sequence)
@@ -119,10 +129,10 @@ def infer(net, image_provider, height_size, cpu, device, model):
             else:
                 prediction_made = False
             pose_sequence = pose_sequence[-4:]
-        
+
         if (prediction_made):
             cv2.putText(img, LABELS[int(prediction)], (10, 30),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
         for pose in current_poses:
             pose.draw(img)
@@ -132,7 +142,6 @@ def infer(net, image_provider, height_size, cpu, device, model):
         key = cv2.waitKey(1)
         if key == 27:  # esc
             return
-
 
 
 if __name__ == "__main__":
@@ -157,7 +166,7 @@ if __name__ == "__main__":
 
     model = LstmClassifier(INPUT_DIM, N_CLASSES)
     model = model.to(DEVICE)
-    model.load_state_dict(torch.load("weights/lstm_action_classifier.pth.tar"))
+    model.load_state_dict(torch.load("lstm_action_classifier.pth.tar"))
 
     frame_provider = VideoReader("0")
     infer(net, frame_provider, 256, False, DEVICE, model)
