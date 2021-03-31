@@ -1,4 +1,5 @@
 
+
 import numpy as np
 import cv2
 import os
@@ -6,31 +7,28 @@ import torch
 import torch.nn as nn
 
 os.sys.path.append('poseEstimation')
-from poseEstimation.models.with_mobilenet import PoseEstimationWithMobileNet
-from poseEstimation.modules.keypoints import extract_keypoints, group_keypoints
-from poseEstimation.modules.load_state import load_state
-from poseEstimation.modules.pose import Pose
+
 from poseEstimation.demo import infer_fast, VideoReader
+from poseEstimation.modules.pose import Pose
+from poseEstimation.modules.load_state import load_state
+from poseEstimation.modules.keypoints import extract_keypoints, group_keypoints
+from poseEstimation.models.with_mobilenet import PoseEstimationWithMobileNet
 
-
-LABELS = ["Around",
-          "ComeHere",
-          "Danger You",
+LABELS = ["ComeHere/Watch/Me",
+          "Danger/You",
           "DontKnow",
           "OKsurface",
-          "Over Under",
-          "Think PressureBalancePb ReserveOpened",
-          "Watch",
+          "Think",
           "CannotOpenReserve",
           "Cold",
           "Help",
-          "Me",
           "Meet",
-          "OutOfAir",
-          "Stop"]
+          "PressureBalancePb/ReserveOpened/Stop"]
 
-N_CLASSES = 15
-INPUT_DIM = 36
+keypoints_to_delete = [18, 19, 20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+
+N_CLASSES = 10
+INPUT_DIM = 20
 SEQUENCE_LENGTH = 16
 
 
@@ -113,15 +111,14 @@ def infer(net, image_provider, height_size, cpu, device, model):
             current_poses.append(pose)
 
         if (len(current_poses) > 0):
-            # print(current_poses[0].keypoints.reshape([1,36]))
-            pose_sequence.append(current_poses[0].keypoints.reshape([36]))
+            # print(current_poses[0].keypoints.reshape([36]))
+            pose_sequence.append(np.delete(current_poses[0].keypoints.reshape([36]), keypoints_to_delete))
             # print(len(pose_sequence))
             # print(type(current_poses[0].keypoints))
 
-        if (len(pose_sequence) == 32):
-            # print(pose_sequence)
+        if (len(pose_sequence) == SEQUENCE_LENGTH):
             sequence = torch.FloatTensor(pose_sequence).unsqueeze(0)
-            # print(sequence.shape)
+            print(sequence.shape)
             prediction, values = classificateAction(model, sequence, device)
             print(values)
             if (values[0][prediction].item() > 1.0):
