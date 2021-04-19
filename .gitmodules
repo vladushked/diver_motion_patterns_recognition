@@ -1,6 +1,3 @@
-[submodule "annotation_tools"]
-	path = annotation_tools
-	url = https://github.com/visipedia/annotation_tools.git
 [submodule "poseEstimation"]
 	path = poseEstimation
 	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch.git
