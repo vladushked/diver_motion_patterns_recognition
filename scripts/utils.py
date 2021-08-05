@@ -4,6 +4,9 @@ import pandas as pd
 import datetime
 import torch
 import torch.nn as nn
+import itertools
+import matplotlib.pyplot as plt
+
 
 def find_dir(number, path, name):
     for dirname in os.listdir(path):
@@ -170,6 +173,8 @@ def train_model(model, optimizer, criterion, n_epoch, batch_size, train_dataset,
         
     return train_losses, train_accuracies, val_losses, val_accuracies, best_val_loss, best_val_accuracy, best_epoch
 
+# Run prediction
+
 def get_all_preds(model, batches, device, criterion):
     model.eval()
     all_preds = torch.tensor([]).to(device)
@@ -203,3 +208,26 @@ def get_all_preds(model, batches, device, criterion):
     epoch_accuracy = correct_predictions / n_predictions
     
     return all_preds, epoch_loss, epoch_accuracy, inference_time / n_predictions
+
+# Draw plots
+
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
+        title = "Normalized confusion matrix"
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=90)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.1f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt), horizontalalignment="center", color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
