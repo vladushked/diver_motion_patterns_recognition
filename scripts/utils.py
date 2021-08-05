@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-
+import datetime
 import torch
 import torch.nn as nn
 
@@ -169,3 +169,37 @@ def train_model(model, optimizer, criterion, n_epoch, batch_size, train_dataset,
         print("Val loss: " + str(val_loss) + ", accuracy: " + str(val_accuracy) + "\n\n")
         
     return train_losses, train_accuracies, val_losses, val_accuracies, best_val_loss, best_val_accuracy, best_epoch
+
+def get_all_preds(model, batches, device, criterion):
+    model.eval()
+    all_preds = torch.tensor([]).to(device)
+    correct_predictions = 0
+    n_predictions = 0
+    epoch_loss = 0.0
+    inference_time = 0.0
+
+
+    for X_batch, y_batch in batches:
+        X_batch = X_batch.to(device)
+        y_batch = y_batch.to(device)
+
+        with torch.no_grad():
+            start_time = datetime.datetime.now()
+            y_pred = model.forward(X_batch)
+            finish_time = datetime.datetime.now()
+            delta = finish_time - start_time
+            inference_time += delta.total_seconds()
+            loss = criterion.forward(y_pred, y_batch)
+
+        epoch_loss += loss.item() * y_batch.shape[0]
+        correct_predictions += (torch.argmax(y_pred, dim=1) == y_batch).sum().item()
+        n_predictions += y_batch.shape[0]
+        all_preds = torch.cat(
+            (all_preds, torch.argmax(y_pred, dim=1))
+            ,dim=0
+        )
+    
+    epoch_loss = epoch_loss / n_predictions
+    epoch_accuracy = correct_predictions / n_predictions
+    
+    return all_preds, epoch_loss, epoch_accuracy, inference_time / n_predictions
