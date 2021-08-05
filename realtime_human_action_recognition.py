@@ -14,6 +14,8 @@ from poseEstimation.modules.load_state import load_state
 from poseEstimation.modules.keypoints import extract_keypoints, group_keypoints
 from poseEstimation.models.with_mobilenet import PoseEstimationWithMobileNet
 
+from scripts.utils import LstmClassifier
+
 LABELS = ["ComeHere/Watch/Me",
           "Danger/You/Help",
           "DontKnow",
@@ -28,27 +30,6 @@ keypoints_to_delete = [18, 19, 20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 3
 N_CLASSES = 8
 INPUT_DIM = 20
 SEQUENCE_LENGTH = 16
-
-
-class LstmClassifier(nn.Module):
-    def __init__(self, input_dim, n_classes, lstm_hidden_dim=256, fc_hidden_dim=256, n_lstm_layers=2):
-        super(LstmClassifier, self).__init__()
-
-        self._lstm = nn.LSTM(input_size=input_dim,
-                             hidden_size=lstm_hidden_dim,
-                             num_layers=n_lstm_layers,
-                             batch_first=True)
-
-        self._fc = nn.Sequential(nn.Linear(lstm_hidden_dim, fc_hidden_dim),
-                                 nn.ReLU(),
-                                 nn.Linear(fc_hidden_dim, n_classes))
-
-    def forward(self, x):
-        lstm_output, _ = self._lstm.forward(x)
-        lstm_output = lstm_output[:, -1, :]
-        fc_output = self._fc.forward(lstm_output)
-        return fc_output
-
 
 def classificateAction(model, sequence, device):
     model.eval()
