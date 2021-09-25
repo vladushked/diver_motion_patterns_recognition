@@ -1,6 +1,3 @@
 [submodule "poseEstimation"]
 	path = poseEstimation
 	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch.git
-[submodule "lightweight-human-pose-estimation-3d-demo.pytorch"]
-	path = lightweight-human-pose-estimation-3d-demo.pytorch
-	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation-3d-demo.pytorch.git
