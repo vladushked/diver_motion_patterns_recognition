@@ -40,6 +40,7 @@ def convert_to_coco(dataset_path, train_path, test_path):
     coco_test = {'images': [], 'categories': [], 'annotations': []}
 
     for img_id in range(img_num):
+        is_train = np.random.choice(np.arange(0, 2), p=[0.1, 0.9])
         image_annolist = annolist[img_id]
         if acts[img_id]['act_name'][0].size > 0:
             act_name = acts[img_id]['act_name'][0][0]
@@ -59,7 +60,7 @@ def convert_to_coco(dataset_path, train_path, test_path):
                 w, h = img.size
                 img_dict = {'id': img_id, 'file_name': image_file,
                             'width': w, 'height': h}
-                if mpii['img_train'][0][img_id] == 1:
+                if is_train == 1:
                     coco_train['images'].append(img_dict)
                 else:
                     coco_test['images'].append(img_dict)
@@ -104,7 +105,7 @@ def convert_to_coco(dataset_path, train_path, test_path):
 
                         person_dict = {'id': aid, 'image_id': img_id, 'category_id': 1, 'area': bbox[2]*bbox[3], 'bbox': bbox.tolist(
                         ), 'iscrowd': 0, 'keypoints': kps.reshape(-1).tolist(), 'num_keypoints': int(np.sum(kps[:, 2] == 1))}
-                        if mpii['img_train'][0][img_id] == 1:
+                        if is_train == 1:
                             coco_train['annotations'].append(person_dict)
                         else:
                             coco_test['annotations'].append(person_dict)
