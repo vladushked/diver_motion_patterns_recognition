@@ -9,7 +9,8 @@ import argparse
 MPII_ANNOTATIONS = 'mpii_human_pose_v1_u12_2/mpii_human_pose_v1_u12_1.mat'
 MPII_IMAGES_FOLDER = 'mpii_human_pose_v1/images'
 JOINT_NUM = 16
-
+CAT_NAMES = ['water activities']
+ACT_NAMES = ['skindiving or SCUBA diving as a frogman, Navy Seal']
 
 def check_empty(list, name):
     if list is None:
@@ -29,7 +30,10 @@ def convert_to_coco(dataset_path, train_path, test_path):
     annotation_file = loadmat(os.path.join(dataset_path, MPII_ANNOTATIONS))
     mpii = {n: annotation_file['RELEASE'][n][0, 0]
             for n in annotation_file['RELEASE'].dtype.names}
+
     annolist = mpii['annolist'][0]
+    acts = mpii['act']
+
     img_num = len(annolist['image'])
     aid = 0
     coco_train = {'images': [], 'categories': [], 'annotations': []}
@@ -37,69 +41,74 @@ def convert_to_coco(dataset_path, train_path, test_path):
 
     for img_id in range(img_num):
         image_annolist = annolist[img_id]
-        # any person is annotated
-        if check_empty(image_annolist, 'annorect') == False:
-            # filename
-            image_file = os.path.join(dataset_path, MPII_IMAGES_FOLDER, str(
-                image_annolist['image']['name'][0, 0][0]))
-
-            # check if image exist
-            if not os.path.isfile(image_file):
+        if acts[img_id]['act_name'][0].size > 0:
+            act_name = acts[img_id]['act_name'][0][0]
+            cat_name = acts[img_id]['cat_name'][0][0]
+            if act_name not in ACT_NAMES and cat_name not in CAT_NAMES:
                 continue
-            img = Image.open(image_file)
-            w, h = img.size
-            img_dict = {'id': img_id, 'file_name': image_file,
-                        'width': w, 'height': h}
-            if mpii['img_train'][0][img_id] == 0:
-                coco_train['images'].append(img_dict)
-            else:
-                coco_test['images'].append(img_dict)
-            
-            annorects = image_annolist['annorect'][0]
-            # person_num
-            person_num = len(annorects)
+            # any person is annotated
+            if check_empty(image_annolist, 'annorect') == False:
+                # filename
+                image_file = os.path.join(dataset_path, MPII_IMAGES_FOLDER, str(
+                    image_annolist['image']['name'][0, 0][0]))
 
-            for pid in range(person_num):
-                # kps is annotated
-                if check_empty(annorects[pid], 'annopoints') == False:
+                # check if image exist
+                if not os.path.isfile(image_file):
+                    continue
+                img = Image.open(image_file)
+                w, h = img.size
+                img_dict = {'id': img_id, 'file_name': image_file,
+                            'width': w, 'height': h}
+                if mpii['img_train'][0][img_id] == 1:
+                    coco_train['images'].append(img_dict)
+                else:
+                    coco_test['images'].append(img_dict)
+                
+                annorects = image_annolist['annorect'][0]
+                # person_num
+                person_num = len(annorects)
 
-                    bbox = np.zeros((4))  # xmin, ymin, w, h
-                    kps = np.zeros((JOINT_NUM, 3))  # xcoord, ycoord, vis
+                for pid in range(person_num):
+                    # kps is annotated
+                    if check_empty(annorects[pid], 'annopoints') == False:
 
-                    # kps
-                    annot_joint_num = len(mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0])
-                    for jid in range(annot_joint_num):
-                        annot_jid = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['id'][0][0]
-                        kps[annot_jid][0] = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['x'][0][0]
-                        kps[annot_jid][1] = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['y'][0][0]
-                        kps[annot_jid][2] = 1
+                        bbox = np.zeros((4))  # xmin, ymin, w, h
+                        kps = np.zeros((JOINT_NUM, 3))  # xcoord, ycoord, vis
 
-                    # bbox extract from annotated kps
-                    annot_kps = kps[kps[:, 2] == 1, :].reshape(-1, 3)
-                    xmin = np.min(annot_kps[:, 0])
-                    ymin = np.min(annot_kps[:, 1])
-                    xmax = np.max(annot_kps[:, 0])
-                    ymax = np.max(annot_kps[:, 1])
-                    width = xmax - xmin - 1
-                    height = ymax - ymin - 1
+                        # kps
+                        annot_joint_num = len(mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0])
+                        for jid in range(annot_joint_num):
+                            annot_jid = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['id'][0][0]
+                            kps[annot_jid][0] = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['x'][0][0]
+                            kps[annot_jid][1] = mpii['annolist'][0][img_id]['annorect'][0][pid]['annopoints']["point"][0][0][0][jid]['y'][0][0]
+                            kps[annot_jid][2] = 1
 
-                    # corrupted bounding box
-                    if width <= 0 or height <= 0:
-                        continue
-                    # 20% extend
-                    else:
-                        bbox[0] = (xmin + xmax)/2. - width/2*1.2
-                        bbox[1] = (ymin + ymax)/2. - height/2*1.2
-                        bbox[2] = width*1.2
-                        bbox[3] = height*1.2
+                        # bbox extract from annotated kps
+                        annot_kps = kps[kps[:, 2] == 1, :].reshape(-1, 3)
+                        xmin = np.min(annot_kps[:, 0])
+                        ymin = np.min(annot_kps[:, 1])
+                        xmax = np.max(annot_kps[:, 0])
+                        ymax = np.max(annot_kps[:, 1])
+                        width = xmax - xmin - 1
+                        height = ymax - ymin - 1
 
-                    person_dict = {'id': aid, 'image_id': img_id, 'category_id': 1, 'area': bbox[2]*bbox[3], 'bbox': bbox.tolist(
-                    ), 'iscrowd': 0, 'keypoints': kps.reshape(-1).tolist(), 'num_keypoints': int(np.sum(kps[:, 2] == 1))}
-                    if mpii['img_train'][0][img_id] == 0:
-                        coco_train['annotations'].append(person_dict)
-                    else:
-                        coco_test['annotations'].append(person_dict)
-                    aid += 1
+                        # corrupted bounding box
+                        if width <= 0 or height <= 0:
+                            continue
+                        # 20% extend
+                        else:
+                            bbox[0] = (xmin + xmax)/2. - width/2*1.2
+                            bbox[1] = (ymin + ymax)/2. - height/2*1.2
+                            bbox[2] = width*1.2
+                            bbox[3] = height*1.2
+
+                        person_dict = {'id': aid, 'image_id': img_id, 'category_id': 1, 'area': bbox[2]*bbox[3], 'bbox': bbox.tolist(
+                        ), 'iscrowd': 0, 'keypoints': kps.reshape(-1).tolist(), 'num_keypoints': int(np.sum(kps[:, 2] == 1))}
+                        if mpii['img_train'][0][img_id] == 1:
+                            coco_train['annotations'].append(person_dict)
+                        else:
+                            coco_test['annotations'].append(person_dict)
+                        aid += 1
 
     category = {
         "supercategory": "person",
